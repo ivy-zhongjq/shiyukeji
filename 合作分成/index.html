@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智数后台 - 合作分成对账功能 · 交付物总览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Noto Sans CJK SC", "WenQuanYi Micro Hei", sans-serif;
+            background-color: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+            color: #ffffff;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .header .subtitle {
+            font-size: 15px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .header .divider {
+            width: 60px;
+            height: 3px;
+            background-color: #63b3ed;
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        /* 内容容器 */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 区块标题 */
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a365d;
+            margin-bottom: 20px;
+            padding-left: 12px;
+            border-left: 4px solid #2b6cb0;
+        }
+
+        /* 项目概要卡片 */
+        .overview-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 28px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+
+        .overview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .overview-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+        }
+
+        .overview-table td:first-child {
+            width: 140px;
+            font-weight: 600;
+            color: #4a5568;
+            background-color: #f7fafc;
+        }
+
+        .overview-table td:last-child {
+            color: #2d3748;
+        }
+
+        .overview-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 交付物卡片网格 */
+        .deliverables-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .deliverable-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+        }
+
+        .deliverable-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+            border-color: #2b6cb0;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-icon {
+            font-size: 28px;
+            margin-right: 12px;
+        }
+
+        .card-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #1a365d;
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 14px;
+            line-height: 1.7;
+            flex-grow: 1;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-green {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .tag-orange {
+            background-color: #feebc8;
+            color: #7b341e;
+        }
+
+        .tag-blue {
+            background-color: #bee3f8;
+            color: #2a4365;
+        }
+
+        .tag-gray {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .card-link {
+            display: inline-block;
+            color: #2b6cb0;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .card-link:hover {
+            text-decoration: underline;
+            color: #1a365d;
+        }
+
+        .card-link::after {
+            content: " →";
+        }
+
+        /* 分期说明表格 */
+        .phase-table-wrapper {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .phase-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .phase-table th {
+            background-color: #2b6cb0;
+            color: #ffffff;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .phase-table th:first-child {
+            border-radius: 6px 0 0 0;
+        }
+
+        .phase-table th:last-child {
+            border-radius: 0 6px 0 0;
+        }
+
+        .phase-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #edf2f7;
+            font-size: 14px;
+        }
+
+        .phase-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .phase-table tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+
+        .phase-table .phase-name {
+            font-weight: 600;
+        }
+
+        .phase-table .phase-count {
+            font-weight: 700;
+            color: #2b6cb0;
+        }
+
+        /* 架构图 */
+        .architecture-diagram {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 32px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .arch-node {
+            padding: 16px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 180px;
+        }
+
+        .arch-node-internal {
+            background: linear-gradient(135deg, #2b6cb0, #1a365d);
+            color: #ffffff;
+        }
+
+        .arch-node-mobile {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 2px solid #48bb78;
+        }
+
+        .arch-node-pc {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 2px solid #4299e1;
+        }
+
+        .arch-arrow {
+            font-size: 20px;
+            color: #2b6cb0;
+            font-weight: 700;
+        }
+
+        .arch-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 400;
+            margin-top: 4px;
+            opacity: 0.8;
+        }
+
+        .arch-branch {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 底部 */
+        .footer {
+            text-align: center;
+            padding: 24px 20px;
+            color: #718096;
+            font-size: 13px;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 20px;
+        }
+
+        .footer p {
+            margin-bottom: 6px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .deliverables-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .arch-flow {
+                flex-direction: column;
+            }
+
+            .arch-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <h1>智数后台 - 合作分成对账功能 · 交付物总览</h1>
+        <div class="subtitle">合作分成对账功能 V2.0 | 2026-08-21</div>
+        <div class="divider"></div>
+    </div>
+
+    <div class="container">
+        <!-- 1. 项目概要 -->
+        <h2 class="section-title">项目概要</h2>
+        <div class="overview-card">
+            <table class="overview-table">
+                <tr>
+                    <td>项目名称</td>
+                    <td>智数后台 - 合作分成对账功能</td>
+                </tr>
+                <tr>
+                    <td>文档版本</td>
+                    <td>V2.0</td>
+                </tr>
+                <tr>
+                    <td>编写日期</td>
+                    <td>2026-08-21</td>
+                </tr>
+                <tr>
+                    <td>覆盖范围</td>
+                    <td>二期已上线 + 二期优化 + 三期新增</td>
+                </tr>
+                <tr>
+                    <td>涉及系统</td>
+                    <td>智数后台、数智全开小程序、数智全开PC端</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- 2. 交付物列表 -->
+        <h2 class="section-title">交付物列表</h2>
+        <div class="deliverables-grid">
+
+            <!-- 卡片1 -->
+            <div class="deliverable-card">
+                <div class="card-header">
+                    <span class="card-icon">📄</span>
+                    <span class="card-title">总需求文档</span>
+                </div>
+                <p class="card-desc">覆盖全功能的统一需求文档，含二期已上线+二期优化+三期新增</p>
+                <div class="card-tags">
+                    <span class="tag tag-gray">全部</span>
+                </div>
+                <a href="合作分成对账功能-需求文档.html" class="card-link">查看详情</a>
+            </div>
+
+            <!-- 卡片2 -->
+            <div class="deliverable-card">
+                <div class="card-header">
+                    <span class="card-icon">📋</span>
+                    <span class="card-title">二期需求文档</span>
+                </div>
+                <p class="card-desc">仅二期已上线功能，含门店对账单列表优化等二期调整</p>
+                <div class="card-tags">
+                    <span class="tag tag-green">二期已上线</span>
+                </div>
+                <a href="二期需求文档-合作分成对账功能.html" class="card-link">查看详情</a>
+            </div>
+
+            <!-- 卡片3 -->
+            <div class="deliverable-card">
+                <div class="card-header">
+                    <span class="card-icon">📋</span>
+                    <span class="card-title">三期需求文档</span>
+                </div>
+                <p class="card-desc">二期优化+三期新增需求，含自动认款、PC端对账单等</p>
+                <div class="card-tags">
+                    <span class="tag tag-orange">二期优化</span>
+                    <span class="tag tag-blue">三期新增</span>
+                </div>
+                <a href="三期需求文档-合作分成对账功能.html" class="card-link">查看详情</a>
+            </div>
+
+            <!-- 卡片4 -->
+            <div class="deliverable-card">
+                <div class="card-header">
+                    <span class="card-icon">🖥️</span>
+                    <span class="card-title">智数后台高保真原型</span>
+                </div>
+                <p class="card-desc">7个核心页面+2个弹窗，含认款优化、明细弹窗、编辑均分功能</p>
+                <div class="card-tags">
+                    <span class="tag tag-green">二期已上线</span>
+                    <span class="tag tag-orange">二期优化</span>
+                    <span class="tag tag-blue">三期新增</span>
+                </div>
+                <a href="智数后台-高保真原型.html" class="card-link">查看详情</a>
+            </div>
+
+            <!-- 卡片5 -->
+            <div class="deliverable-card">
+                <div class="card-header">
+                    <span class="card-icon">📱</span>
+                    <span class="card-title">数智全开小程序高保真原型</span>
+                </div>
+                <p class="card-desc">9个页面，合作机台首页、客户对账单、打款提醒等</p>
+                <div class="card-tags">
+                    <span class="tag tag-green">二期已上线</span>
+                </div>
+                <a href="数智全开小程序-高保真原型.html" class="card-link">查看详情</a>
+            </div>
+
+            <!-- 卡片6 -->
+            <div class="deliverable-card">
+                <div class="card-header">
+                    <span class="card-icon">💻</span>
+                    <span class="card-title">数智全开PC端高保真原型</span>
+                </div>
+                <p class="card-desc">3个页面+1个弹窗，客户PC端查看对账单、确认/异议</p>
+                <div class="card-tags">
+                    <span class="tag tag-blue">三期新增</span>
+                </div>
+                <a href="数智全开PC端-高保真原型.html" class="card-link">查看详情</a>
+            </div>
+
+        </div>
+
+        <!-- 3. 功能分期说明 -->
+        <h2 class="section-title">功能分期说明</h2>
+        <div class="phase-table-wrapper">
+            <table class="phase-table">
+                <thead>
+                    <tr>
+                        <th>分期</th>
+                        <th>数量</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="phase-name"><span class="tag tag-green">二期已上线</span></td>
+                        <td class="phase-count">13项</td>
+                        <td>亿玩赏对账、爆玩宇宙对账、分成账期、回款、认款等</td>
+                    </tr>
+                    <tr>
+                        <td class="phase-name"><span class="tag tag-orange">二期优化</span></td>
+                        <td class="phase-count">3项</td>
+                        <td>门店对账单列表优化、认款礼品选项、界面交互优化</td>
+                    </tr>
+                    <tr>
+                        <td class="phase-name"><span class="tag tag-blue">三期新增</span></td>
+                        <td class="phase-count">9项</td>
+                        <td>入库对账、全发货对账、客户不认可流程、盲盒对账、自动认款、企微推送、自动催款、PC端对账单、预警推送</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 4. 三端架构图 -->
+        <h2 class="section-title">三端架构图</h2>
+        <div class="architecture-diagram">
+            <div class="arch-flow">
+                <div class="arch-node arch-node-internal">
+                    智数后台
+                    <span class="arch-label">内部业务员</span>
+                </div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-label">数据推送</div>
+                <div class="arch-arrow">→</div>
+                <div class="arch-branch">
+                    <div class="arch-node arch-node-mobile">
+                        数智全开小程序
+                        <span class="arch-label">客户移动端</span>
+                    </div>
+                    <div class="arch-node arch-node-pc">
+                        数智全开PC端
+                        <span class="arch-label">客户PC端</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+        <p>最后更新时间：2026-08-21</p>
+        <p>说明：点击各卡片可查看对应交付物详情</p>
+    </div>
+</body>
+</html>
