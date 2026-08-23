@@ -6,11 +6,14 @@
 const DB = {
   /* —— 状态标签页 —— */
   statusTabs: [
-    { key: 'all',          label: '全部',   count: 12 },
-    { key: 'pending',      label: '待开单', count: 3  },
-    { key: 'pending_ship', label: '待发货', count: 2  },
-    { key: 'shipped',      label: '已发货', count: 1  },
-    { key: 'pending_in',   label: '待入库', count: 1  },
+    { key: 'all',                label: '全部',       count: 12 },
+    { key: 'not_submitted',      label: '待提交',     count: 2  },
+    { key: 'pending_approval',   label: '待审批',     count: 1  },
+    { key: 'pending_customer',   label: '待客户确认', count: 1  },
+    { key: 'pending',            label: '待开单',     count: 3  },
+    { key: 'pending_ship',       label: '待发货',     count: 2  },
+    { key: 'shipped',            label: '已发货',     count: 1  },
+    { key: 'pending_in',         label: '待入库',     count: 1  },
   ],
 
   /* —— 销售订单列表（含配件明细） —— */
@@ -20,7 +23,7 @@ const DB = {
       poNo: 'CG50553665', serviceCenter: '美国服务中心', customer: 'uicc',
       salesperson: 'Jennifer', mallOrderNo: '', logisticsNo: '', repairNo: 'AS20260423001',
       qty: 10, unitPrice: 1500, subtotal: 4500.00,
-      orderStatus: '未提交', customerStatus: '未提交',
+      orderStatus: '客户未提交', customerStatus: '未提交',
       parts: [
         { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 150,  subtotal: 1500, poNo: 'CG50555656', stock: 5,  poQty: 10, remaining: 10, partStatus: '待开单', logisticsNo: '' },
         { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 300, subtotal: 3000, poNo: 'CG50555657', stock: 3,  poQty: 10, remaining: 10, partStatus: '待开单', logisticsNo: '' },
@@ -124,7 +127,7 @@ const DB = {
       poNo: 'CG50553670', serviceCenter: '美国服务中心', customer: 'Robert',
       salesperson: 'David', mallOrderNo: '', logisticsNo: '', repairNo: 'AS20260422001',
       qty: 15, unitPrice: 12.00, subtotal: 180.00,
-      orderStatus: '待开单', customerStatus: '已确认',
+      orderStatus: '待客户确认', customerStatus: '待确认',
       parts: [
         { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 12.00, subtotal: 120.00, poNo: 'CG50555660', stock: 5, poQty: 10, remaining: 10, partStatus: '待开单', logisticsNo: '' },
         { code: 'T170-0602-00', name: 'Power Supply', k3Code: 'K3-A003', spec: '202.1/23/14.1/22', price: 12.00, subtotal: 60.00, poNo: 'CG50555661', stock: 8, poQty: 5, remaining: 5, partStatus: '待开单', logisticsNo: '' },
@@ -150,6 +153,10 @@ const DB = {
       payStatus: '未支付', orderStatus: '待发货', customerType: '普通用户', invoiceInfo: '不需要',
       oaStatus: '已审批', outboundStatus: '待出库', outboundNo: '',
       shippingInfo: 'FedEx / 到付', salesperson: 'Jennifer',
+      parts: [
+        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 3.02, qty: 11, subtotal: 33.22 },
+        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 6.00, qty: 10, subtotal: 60.00 },
+      ],
     },
     {
       id: 2, orderType: '配件销售', orderNo: 'SY202604220015', customer: 'Ivy', receiver: 'Ivy Chen',
@@ -157,6 +164,10 @@ const DB = {
       payStatus: '已支付', orderStatus: '部分发货', customerType: 'VIP用户', invoiceInfo: '个人',
       oaStatus: '已审批', outboundStatus: '部分出库', outboundNo: 'CK20260422008',
       shippingInfo: 'DHL / 预付', salesperson: 'David',
+      parts: [
+        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 12.50, qty: 30, subtotal: 375.00 },
+        { code: 'T170-0602-00', name: 'Power Supply', k3Code: 'K3-A003', spec: '202.1/23/14.1/22', price: 8.00, qty: 20, subtotal: 160.00 },
+      ],
     },
     {
       id: 3, orderType: '配件销售', orderNo: 'SY202604200008', customer: 'zhang', receiver: 'Wei Zhang',
@@ -164,6 +175,9 @@ const DB = {
       payStatus: '已支付', orderStatus: '已发货', customerType: '普通用户', invoiceInfo: '不需要',
       oaStatus: '已审批', outboundStatus: '已出库', outboundNo: 'CK20260420005',
       shippingInfo: 'UPS / 预付', salesperson: 'Lisa',
+      parts: [
+        { code: 'T170-0601-00', name: 'CPU FAN', k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 1.50, qty: 10, subtotal: 15.00 },
+      ],
     },
     {
       id: 4, orderType: '配件销售', orderNo: 'SY202604180003', customer: 'chenh', receiver: 'Hao Chen',
@@ -171,6 +185,9 @@ const DB = {
       payStatus: '已支付', orderStatus: '已发货', customerType: '经销商', invoiceInfo: '公司',
       oaStatus: '已审批', outboundStatus: '已出库', outboundNo: 'CK20260418002',
       shippingInfo: 'FedEx / 到付', salesperson: 'Jennifer',
+      parts: [
+        { code: 'W121-0902-00', name: 'Computer', k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 2.00, qty: 1, subtotal: 2.00 },
+      ],
     },
     {
       id: 5, orderType: '配件销售', orderNo: 'SY202604150011', customer: 'Jones', receiver: 'Mike Jones',
@@ -178,6 +195,9 @@ const DB = {
       payStatus: '已支付', orderStatus: '部分发货', customerType: '普通用户', invoiceInfo: '不需要',
       oaStatus: '已审批', outboundStatus: '部分出库', outboundNo: 'CK20260415006',
       shippingInfo: 'DHL / 预付', salesperson: 'David',
+      parts: [
+        { code: 'T170-0602-00', name: 'Power Supply', k3Code: 'K3-A003', spec: '202.1/23/14.1/22', price: 3.20, qty: 5, subtotal: 16.00 },
+      ],
     },
     {
       id: 6, orderType: '配件销售', orderNo: 'SY202604100005', customer: 'Cindy', receiver: 'Cindy Liu',
@@ -185,6 +205,9 @@ const DB = {
       payStatus: '已支付', orderStatus: '已完成', customerType: 'VIP用户', invoiceInfo: '个人',
       oaStatus: '已审批', outboundStatus: '已出库', outboundNo: 'CK20260410003',
       shippingInfo: 'UPS / 预付', salesperson: 'Lisa',
+      parts: [
+        { code: 'W121-0902-00', name: 'Computer', k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 4.10, qty: 6, subtotal: 24.60 },
+      ],
     },
   ],
 

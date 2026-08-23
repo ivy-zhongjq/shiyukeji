@@ -375,11 +375,15 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .batch-bar .batch-right { margin-left: auto; }
 
 /* —— Table —— */
-.table-wrap { overflow-x: auto; }
+.table-wrap {
+  overflow-x: auto;
+  position: relative;
+}
 table.data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+  min-width: max-content;
 }
 table.data-table thead th {
   background: var(--table-header);
@@ -391,18 +395,62 @@ table.data-table thead th {
   white-space: nowrap;
   position: sticky;
   top: 0;
+  z-index: 2;
 }
 table.data-table tbody td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border-light);
   color: var(--text);
   vertical-align: middle;
+  white-space: nowrap;
 }
 table.data-table tbody tr:hover { background: var(--primary-bg); }
 table.data-table tbody tr.row-selected { background: var(--primary-bg); }
 
-/* Checkbox */
-.checkbox-cell { width: 36px; text-align: center; }
+/* —— Ops column fixed to right —— */
+table.data-table thead th.ops-cell {
+  position: sticky;
+  right: 0;
+  background: var(--table-header);
+  z-index: 3;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.04);
+}
+table.data-table tbody td.ops-cell {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 1;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.04);
+}
+table.data-table tbody tr:hover td.ops-cell { background: var(--primary-bg); }
+table.data-table tbody tr.row-selected td.ops-cell { background: var(--primary-bg); }
+
+/* —— Expanded part rows: ops cell also sticky —— */
+.parts-inline-row td.ops-cell {
+  position: sticky;
+  right: 0;
+  background: #fafbfc !important;
+  z-index: 1;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.04);
+}
+.parts-inline-row:hover td.ops-cell { background: #f0f7ff !important; }
+
+/* Checkbox cell — ensure consistent width and centering */
+.checkbox-cell {
+  width: 44px;
+  min-width: 44px;
+  text-align: center;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+table.data-table thead th.checkbox-cell {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.checkbox-cell .cb {
+  margin: 0 auto;
+  display: inline-flex;
+}
 .cb {
   width: 16px; height: 16px;
   border: 1px solid var(--border);
@@ -792,9 +840,9 @@ table.data-table tbody tr.row-selected { background: var(--primary-bg); }
 .scheme2-content.show { display: block; }
 
 /* Page switcher (both schemes) */
-.s1-page { display: none; }
+.s1-page { display: none; width: 100%; }
 .s1-page.active { display: block; }
-.s2-page { display: none; }
+.s2-page { display: none; width: 100%; }
 .s2-page.active { display: block; }
 
 /* —— Customer group rows (Scheme 2 待开单) —— */
@@ -804,6 +852,49 @@ table.data-table tbody tr.row-selected { background: var(--primary-bg); }
   border-bottom: none !important;
 }
 .customer-group-header:hover td { background: transparent !important; }
+.customer-group-header td.checkbox-cell {
+  background: #f0f9ff !important;
+  border-bottom: 1px solid #bae0ff !important;
+}
+.customer-group-header:hover td.checkbox-cell {
+  background: #e6f7ff !important;
+  border-bottom: 1px solid #bae0ff !important;
+}
+
+/* —— Scheme 2: Updated customer group header (blue bar) —— */
+.customer-group-header .group-header-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  background: #f0f9ff;
+  border-bottom: 1px solid #bae0ff;
+  box-sizing: border-box;
+}
+.customer-group-header:hover .group-header-content { background: #e6f7ff; }
+.customer-group-header .group-customer-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 13px;
+}
+.customer-group-header .group-customer-name .arrow {
+  width: 14px; height: 14px;
+  transition: transform 0.2s;
+  display: flex; align-items: center;
+  cursor: pointer;
+  color: var(--primary);
+}
+.customer-group-header .group-customer-name .arrow.expanded { transform: rotate(90deg); }
+.customer-group-header .group-customer-name .arrow svg { width: 14px; height: 14px; }
+.customer-group-header .group-summary {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
 
 /* Group child rows */
 .group-child { display: none; }
@@ -1020,41 +1111,27 @@ table.data-table tbody tr.row-selected { background: var(--primary-bg); }
 /* —— Row clickable for expand —— */
 .clickable-row td:not(.checkbox-cell):not(.ops-cell) { cursor: pointer; }
 
-/* —— Scheme 2: Updated customer group header (blue bar) —— */
-.customer-group-header td {
-  padding: 0 !important;
+/* —— Expanded part rows (aligned with main table columns) —— */
+.parts-inline-row { display: none; }
+.parts-inline-row.show { display: table-row; }
+.parts-inline-row td {
+  background: #fafbfc !important;
 }
-.customer-group-header .group-header-content {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 10px 12px;
-  background: #f0f9ff;
-  border-bottom: 1px solid #bae0ff;
-}
-.customer-group-header:hover .group-header-content { background: #e6f7ff; }
-.customer-group-header .group-customer-name {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
+.parts-inline-row:hover td { background: #f0f7ff !important; }
+.parts-inline-row .part-name-cell {
+  text-align: left;
+  padding-left: 24px !important;
   color: var(--text);
-  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.customer-group-header .group-customer-name .arrow {
-  width: 14px; height: 14px;
-  transition: transform 0.2s;
-  display: flex; align-items: center;
-  cursor: pointer;
-  color: var(--primary);
-}
-.customer-group-header .group-customer-name .arrow.expanded { transform: rotate(90deg); }
-.customer-group-header .group-customer-name .arrow svg { width: 14px; height: 14px; }
-.customer-group-header .group-summary {
-  margin-left: auto;
-  font-size: 12px;
-  color: var(--text-tertiary);
-  font-weight: 400;
+
+/* 商品明细列固定宽度 */
+table.data-table th.col-parts-detail,
+table.data-table td.col-parts-detail {
+  min-width: 200px;
+  width: 200px;
 }
 
 /* —— Batch bar button group —— */
@@ -1219,3 +1296,321 @@ table.data-table tbody tr.row-selected { background: var(--primary-bg); }
   justify-content: flex-end;
 }
 .detail-modal .modal-footer .footer-summary { display: none; }
+
+/* ================================================================
+   New styles for v3 update
+   ================================================================ */
+
+/* —— btn-danger —— */
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  border: 1px solid var(--danger);
+}
+.btn-danger:hover {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+}
+
+/* —— Mall orders table: ops column sticky right —— */
+.mall-orders-table thead th.mall-ops-cell {
+  position: sticky;
+  right: 0;
+  background: var(--table-header);
+  z-index: 3;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.04);
+}
+.mall-orders-table tbody td.mall-ops-cell {
+  position: sticky;
+  right: 0;
+  background: #fff;
+  z-index: 1;
+  box-shadow: -2px 0 4px rgba(0,0,0,0.04);
+}
+.mall-orders-table tbody tr:hover td.mall-ops-cell { background: var(--primary-bg); }
+
+/* —— Price input in detail parts table —— */
+.detail-parts-table .price-input {
+  width: 90px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: all 0.2s;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.detail-parts-table .price-input:hover {
+  border-color: var(--primary);
+}
+.detail-parts-table .price-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
+}
+.detail-parts-table .subtotal-cell {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* —— Detail parts table ops column —— */
+.detail-parts-table .col-ops {
+  width: 60px;
+  text-align: center;
+}
+.detail-parts-table .op-replace {
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 13px;
+}
+.detail-parts-table .op-replace:hover {
+  color: var(--primary-hover);
+}
+
+/* ================================================================
+   Approval Modal
+   ================================================================ */
+.approval-modal .modal {
+  width: 900px;
+}
+
+/* —— Approval summary bar (top) —— */
+.approval-summary {
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+  border: 1px solid #bae0ff;
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px 20px;
+}
+.approval-summary .summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.approval-summary .summary-item .label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.approval-summary .summary-item .value {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+.approval-summary .summary-item.full { grid-column: 1 / -1; }
+
+/* —— Approval parts section —— */
+.approval-parts-section {
+  margin-bottom: 0;
+}
+.approval-parts-section .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.approval-parts-section .section-title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.approval-parts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.approval-parts-table th {
+  background: var(--table-header);
+  padding: 10px 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-light);
+}
+.approval-parts-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text);
+}
+.approval-parts-table tr:last-child td { border-bottom: none; }
+.approval-parts-table tr:hover td { background: var(--primary-bg); }
+.approval-parts-table .col-img { width: 56px; text-align: center; }
+.approval-parts-table .part-thumb {
+  width: 40px; height: 40px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-disabled);
+  border: 1px solid var(--border-light);
+}
+.approval-parts-table .part-thumb svg { width: 20px; height: 20px; }
+.approval-parts-table .amount-col { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* —— Approval footer —— */
+.approval-modal .modal-footer {
+  justify-content: space-between;
+  padding: 12px 24px;
+}
+.approval-modal .modal-footer .footer-total {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.approval-modal .modal-footer .footer-total .total-num {
+  color: var(--danger);
+  font-weight: 600;
+  font-size: 18px;
+  margin-left: 4px;
+}
+.approval-modal .modal-footer .footer-actions {
+  display: flex;
+  gap: 12px;
+}
+.approval-modal .modal-footer .btn {
+  height: 36px;
+  padding: 0 24px;
+  font-size: 14px;
+}
+
+/* ================================================================
+   Mall Order Detail Modal
+   ================================================================ */
+.mall-detail-modal .modal { width: 1100px; }
+
+.mall-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mall-detail-stats .stat-card {
+  background: #fafafa;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  text-align: center;
+}
+.mall-detail-stats .stat-card .stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.mall-detail-stats .stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.mall-detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 20px;
+  padding: 16px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+}
+.mall-detail-info-col .col-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.mall-detail-info-col .col-title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.mall-detail-info-col .info-row {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.mall-detail-info-col .info-row .info-label {
+  color: var(--text-tertiary);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+.mall-detail-info-col .info-row .info-value {
+  color: var(--text);
+  word-break: break-all;
+}
+
+.mall-detail-parts-section {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.mall-detail-parts-section .section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.mall-detail-parts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.mall-detail-parts-table th {
+  background: var(--table-header);
+  padding: 8px 10px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-light);
+}
+.mall-detail-parts-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text);
+}
+.mall-detail-parts-table tr:last-child td { border-bottom: none; }
+.mall-detail-parts-table .col-img { width: 56px; text-align: center; }
+.mall-detail-parts-table .part-thumb {
+  width: 40px; height: 40px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-disabled);
+  border: 1px solid var(--border-light);
+}
+.mall-detail-parts-table .part-thumb svg { width: 20px; height: 20px; }
+.mall-detail-parts-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 24px;
+  padding-top: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.mall-detail-parts-footer .footer-num { color: var(--text); font-weight: 500; }
+
+.mall-detail-modal .modal-footer {
+  justify-content: flex-end;
+}

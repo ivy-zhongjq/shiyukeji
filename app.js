@@ -26,6 +26,10 @@ const state = {
   s2pExpandedCustomers: new Set(),
   s2pSelectedParts: new Set(),
   s2pSearchValues: {},
+  // Approval modal state
+  currentApprovalOrderId: null,
+  // Detail modal parts (for price editing)
+  detailModalParts: [],
 };
 
 /* ==================== Helpers ==================== */
@@ -36,7 +40,8 @@ function fmt(n) {
 
 function statusClass(status) {
   const map = {
-    '未提交': 'status-default', '待审批': 'status-processing', '待确认': 'status-processing',
+    '未提交': 'status-default', '客户未提交': 'status-default',
+    '待审批': 'status-processing', '待客户确认': 'status-warning',
     '待开单': 'status-warning', '待发货': 'status-processing', '部分发货': 'status-processing',
     '已发货': 'status-success', '待入库': 'status-processing', '部分入库': 'status-processing',
     '已完成': 'status-success', '已关闭': 'status-default', '处理中': 'status-processing',
@@ -293,7 +298,14 @@ function s2SwitchPage(page) {
 /* ================================================================ */
 
 const tabStatusMap = {
-  all: null, pending: '待开单', pending_ship: '待发货', shipped: '已发货', pending_in: '待入库',
+  all: null,
+  not_submitted: ['未提交', '客户未提交'],
+  pending_approval: '待审批',
+  pending_customer: '待客户确认',
+  pending: '待开单',
+  pending_ship: '待发货',
+  shipped: '已发货',
+  pending_in: '待入库',
 };
 
 function renderTabs() {
@@ -319,6 +331,8 @@ function renderTable() {
       orders = orders.filter(o => o.orderStatus === '待发货' || o.orderStatus === '部分发货');
     } else if (state.currentTab === 'pending_in') {
       orders = orders.filter(o => o.orderStatus === '待入库' || o.orderStatus === '部分入库');
+    } else if (Array.isArray(tabStatus)) {
+      orders = orders.filter(o => tabStatus.includes(o.orderStatus));
     } else {
       orders = orders.filter(o => o.orderStatus === tabStatus);
     }
@@ -332,7 +346,7 @@ function renderTable() {
 
   state.filteredOrders = orders;
   const tbody = document.getElementById('orderTableBody');
-  const colCount = 17;
+  const colCount = 16;
   if (orders.length === 0) {
     tbody.innerHTML = emptyRow(colCount);
     document.getElementById('pageInfo').textContent = `共 0 条`;
@@ -350,6 +364,7 @@ function renderTable() {
     const cbClass = isIndeterminate ? 'cb indeterminate' : (isSelected ? 'cb checked' : 'cb');
     const rowClass = isSelected ? 'row-selected' : '';
     const clickableClass = 'clickable-row';
+    const expandArrow = isExpanded ? 'expanded' : '';
 
     // Main row
     html += `
@@ -360,22 +375,42 @@ function renderTable() {
         <td onclick="toggleExpand(${order.id})">${order.poNo}</td>
         <td onclick="toggleExpand(${order.id})">${order.serviceCenter}</td>
         <td onclick="toggleExpand(${order.id})">${order.customer}</td>
-        <td onclick="toggleExpand(${order.id})"><span class="status-badge ${statusClass(order.customerStatus)}"><span class="dot"></span>${order.customerStatus}</span></td>
+        <td class="col-parts-detail" onclick="toggleExpand(${order.id})"><span class="expand-toggle ${expandArrow}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
+        <td onclick="toggleExpand(${order.id})">${order.qty}</td>
+        <td onclick="toggleExpand(${order.id})">${order.unitPrice ? fmt(order.unitPrice) : '—'}</td>
+        <td onclick="toggleExpand(${order.id})">${order.subtotal ? fmt(order.subtotal) : '—'}</td>
+        <td onclick="toggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
         <td onclick="toggleExpand(${order.id})">${order.salesperson}</td>
         <td onclick="toggleExpand(${order.id})">${order.mallOrderNo || '—'}</td>
         <td onclick="toggleExpand(${order.id})">${order.logisticsNo || '—'}</td>
         <td onclick="toggleExpand(${order.id})">${order.repairNo || '—'}</td>
-        <td onclick="toggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
-        <td onclick="toggleExpand(${order.id})"><span class="expand-toggle ${isExpanded ? 'expanded' : ''}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
-        <td onclick="toggleExpand(${order.id})">${order.qty}</td>
-        <td onclick="toggleExpand(${order.id})">${order.unitPrice ? fmt(order.unitPrice) : '—'}</td>
-        <td onclick="toggleExpand(${order.id})">${order.subtotal ? fmt(order.subtotal) : '—'}</td>
         <td class="ops-cell">${renderOps(order)}</td>
       </tr>`;
 
-    // Expanded parts inline row
+    // Expanded parts rows — part names under 商品明细 column
     if (isExpanded) {
-      html += expandedPartsInlineRow(order);
+      order.parts.forEach((part, pi) => {
+        const partSelected = state.selectedParts.has(partKey(order.id, pi));
+        html += `
+      <tr class="parts-inline-row show">
+        <td class="checkbox-cell"><div class="cb ${partSelected ? 'checked' : ''}" onclick="event.stopPropagation(); togglePartSelect(${order.id}, ${pi})">${ICONS.check}</div></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td class="col-parts-detail part-name-cell">${part.name}</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td class="ops-cell"></td>
+      </tr>`;
+      });
     }
   });
 
@@ -387,7 +422,7 @@ function renderTable() {
 function expandedPartsInlineRow(order) {
   return `
     <tr class="parts-inline show">
-      <td colspan="17">
+      <td colspan="15">
         <div class="parts-inline-inner">
           <table class="parts-inline-table">
             <thead><tr>
@@ -429,12 +464,17 @@ function emptyRow(colspan) {
 
 function renderOps(order) {
   const s = order.orderStatus;
-  if (s === '未提交') return opsLinks(['确认提交', '修改', '详情', '删除'], order);
-  if (s === '待审批') return opsLinks(['详情', '日志'], order);
-  if (s === '待开单') return `<a class="op-link" onclick="openModalForOrder(${order.id})" style="font-weight:500">生成商城订单</a>` + opsLinks(['生成采购订单', '修改', '关闭', '详情', '日志'], order, 0, false, true);
-  if (s === '待确认') return opsLinks(['确认', '关闭', '详情', '日志'], order);
-  if (s === '待发货' || s === '部分发货') return opsLinks(['物流单号: 查看', '详情', '日志'], order);
-  if (s === '已发货' || s === '待入库' || s === '部分入库' || s === '已完成') return opsLinks(['详情', '日志'], order);
+  if (s === '未提交') return opsLinks(['详情', '编辑订单', '日志'], order);
+  if (s === '客户未提交') return opsLinks(['详情', '日志'], order);
+  if (s === '待审批') return opsLinks(['审批', '编辑订单', '详情', '日志'], order);
+  if (s === '待客户确认') return opsLinks(['详情', '日志'], order);
+  if (s === '待开单') return opsLinks(['推单', '详情', '日志'], order);
+  if (s === '待发货') return opsLinks(['详情', '日志'], order);
+  if (s === '部分发货') return opsLinks(['详情', '日志'], order);
+  if (s === '待入库') return opsLinks(['详情', '完成', '日志'], order);
+  if (s === '部分入库') return opsLinks(['详情', '日志'], order);
+  if (s === '已完成') return opsLinks(['详情', '日志'], order);
+  if (s === '已关闭') return opsLinks(['详情', '日志'], order);
   return opsLinks(['详情', '日志'], order);
 }
 
@@ -446,6 +486,7 @@ function opsLinks(links, order, startIndex = 0, firstGroup = false, skipFirstSep
     if (label === '确认提交') action = `confirmSubmit(${order.id})`;
     else if (label === '生成商城订单') action = `openModalForOrder(${order.id})`;
     else if (label === '详情') action = `openDetailModal(${order.id})`;
+    else if (label === '审批') action = `openApprovalModal(${order.id})`;
     else if (label === '生成采购订单') action = `showToast('生成采购订单功能演示中','info')`;
     else action = `showToast('${label}功能演示中','info')`;
     const sep = (i === 0 && skipFirstSep) ? '' : `<span class="op-sep">/</span>`;
@@ -560,6 +601,8 @@ function s2RenderTable() {
       orders = orders.filter(o => o.orderStatus === '待发货' || o.orderStatus === '部分发货');
     } else if (state.s2CurrentTab === 'pending_in') {
       orders = orders.filter(o => o.orderStatus === '待入库' || o.orderStatus === '部分入库');
+    } else if (Array.isArray(tabStatus)) {
+      orders = orders.filter(o => tabStatus.includes(o.orderStatus));
     } else {
       orders = orders.filter(o => o.orderStatus === tabStatus);
     }
@@ -573,7 +616,7 @@ function s2RenderTable() {
 
   state.s2FilteredOrders = orders;
   const tbody = document.getElementById('s2OrderTableBody');
-  const colCount = 17;
+  const colCount = 16;
   if (orders.length === 0) {
     tbody.innerHTML = emptyRow(colCount);
     document.getElementById('s2PageInfo').textContent = `共 0 条`;
@@ -587,6 +630,7 @@ function s2RenderTable() {
     const isExpanded = state.s2ExpandedOrders.has(order.id);
     const isSelected = state.s2SelectedOrders.has(order.id);
     const cbClass = isSelected ? 'cb checked' : 'cb';
+    const expandArrow = isExpanded ? 'expanded' : '';
 
     html += `
       <tr class="${isSelected ? 'row-selected' : ''} clickable-row" data-order-id="${order.id}">
@@ -596,47 +640,40 @@ function s2RenderTable() {
         <td onclick="s2ToggleExpand(${order.id})">${order.poNo}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.serviceCenter}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.customer}</td>
-        <td onclick="s2ToggleExpand(${order.id})"><span class="status-badge ${statusClass(order.customerStatus)}"><span class="dot"></span>${order.customerStatus}</span></td>
+        <td class="col-parts-detail" onclick="s2ToggleExpand(${order.id})"><span class="expand-toggle ${expandArrow}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
+        <td onclick="s2ToggleExpand(${order.id})">${order.qty}</td>
+        <td onclick="s2ToggleExpand(${order.id})">${order.unitPrice ? fmt(order.unitPrice) : '—'}</td>
+        <td onclick="s2ToggleExpand(${order.id})">${order.subtotal ? fmt(order.subtotal) : '—'}</td>
+        <td onclick="s2ToggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
         <td onclick="s2ToggleExpand(${order.id})">${order.salesperson}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.mallOrderNo || '—'}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.logisticsNo || '—'}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.repairNo || '—'}</td>
-        <td onclick="s2ToggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
-        <td onclick="s2ToggleExpand(${order.id})"><span class="expand-toggle ${isExpanded ? 'expanded' : ''}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.qty}</td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.unitPrice ? fmt(order.unitPrice) : '—'}</td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.subtotal ? fmt(order.subtotal) : '—'}</td>
         <td class="ops-cell">${s2RenderOps(order)}</td>
       </tr>`;
 
     if (isExpanded) {
-      html += `
-        <tr class="parts-inline show">
-          <td colspan="17">
-            <div class="parts-inline-inner">
-              <table class="parts-inline-table">
-                <thead><tr>
-                  <th>商品名称</th>
-                  <th>采购数量</th>
-                  <th>单价(美元)</th>
-                  <th>商品小计(美元)</th>
-                  <th>订单状态</th>
-                  <th>物流单号</th>
-                </tr></thead>
-                <tbody>
-                  ${order.parts.map(part => `<tr>
-                    <td>${part.name} <span style="color:#8c8c8c;font-size:12px">(${part.code})</span></td>
-                    <td>${part.poQty}</td>
-                    <td>${fmt(part.price)}</td>
-                    <td>${fmt(part.subtotal)}</td>
-                    <td><span class="status-badge ${statusClass(part.partStatus)}"><span class="dot"></span>${part.partStatus}</span></td>
-                    <td>${part.logisticsNo || '—'}</td>
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>
-          </td>
+      order.parts.forEach(part => {
+        html += `
+        <tr class="parts-inline-row show">
+          <td class="checkbox-cell"></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="col-parts-detail part-name-cell">${part.name}</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td class="ops-cell"></td>
         </tr>`;
+      });
     }
   });
 
@@ -646,7 +683,19 @@ function s2RenderTable() {
 }
 
 function s2RenderOps(order) {
-  return `<a class="op-link" onclick="openDetailModal(${order.id})">详情</a><span class="op-sep">/</span><a class="op-link" onclick="showToast('日志功能演示中','info')">日志</a>`;
+  const s = order.orderStatus;
+  if (s === '未提交') return opsLinks(['详情', '编辑订单', '日志'], order);
+  if (s === '客户未提交') return opsLinks(['详情', '日志'], order);
+  if (s === '待审批') return opsLinks(['审批', '编辑订单', '详情', '日志'], order);
+  if (s === '待客户确认') return opsLinks(['详情', '日志'], order);
+  if (s === '待开单') return opsLinks(['推单', '详情', '日志'], order);
+  if (s === '待发货') return opsLinks(['详情', '日志'], order);
+  if (s === '部分发货') return opsLinks(['详情', '日志'], order);
+  if (s === '待入库') return opsLinks(['详情', '完成', '日志'], order);
+  if (s === '部分入库') return opsLinks(['详情', '日志'], order);
+  if (s === '已完成') return opsLinks(['详情', '日志'], order);
+  if (s === '已关闭') return opsLinks(['详情', '日志'], order);
+  return opsLinks(['详情', '日志'], order);
 }
 
 function s2ToggleExpand(orderId) {
@@ -855,6 +904,26 @@ function s2pGenerateMallOrder() {
   openModal(state.modalParts, { name: cust.customerName, serviceCenter: cust.serviceCenter });
 }
 
+/* —— Scheme 2 订单列表: 生成商城订单弹窗 —— */
+function s2OpenGenerateModal() {
+  const selectedOrders = state.s2FilteredOrders.filter(o => state.s2SelectedOrders.has(o.id));
+  let ordersToUse = selectedOrders;
+  if (ordersToUse.length === 0) {
+    ordersToUse = state.s2FilteredOrders.filter(o => o.orderStatus === '待开单');
+    if (ordersToUse.length === 0) { showToast('请先勾选待开单状态的订单', 'info'); return; }
+  }
+  const customers = [...new Set(ordersToUse.map(o => o.customer))];
+  if (customers.length > 1) { showToast('非同一客户，不可合并生成商城订单', 'info'); return; }
+  const parts = ordersToUse.flatMap(o =>
+    o.parts.map(p => ({
+      code: p.code, name: p.name, k3Code: p.k3Code, spec: p.spec,
+      price: p.price, subtotal: p.subtotal, poNo: p.poNo,
+      stock: p.stock, poQty: p.poQty, remaining: p.remaining, shipQty: 1,
+    }))
+  );
+  openModal(parts, { name: customers[0], serviceCenter: ordersToUse[0].serviceCenter });
+}
+
 function s2pBatchOrder() {
   const selectedParts = DB.s2Customers.flatMap(c => c.parts).filter(p => state.s2pSelectedParts.has(p.uid));
   if (selectedParts.length === 0) {
@@ -877,7 +946,7 @@ function renderMallOrders() {
   const rowsHtml = DB.mallOrders.map(o => `
     <tr>
       <td>${o.orderType}</td>
-      <td><a class="op-link" onclick="showToast('查看世宇订单详情','info')">${o.orderNo}</a></td>
+      <td>${o.orderNo}</td>
       <td>${o.customer}</td>
       <td>${o.receiver}</td>
       <td>${o.isWarranty}</td>
@@ -893,6 +962,7 @@ function renderMallOrders() {
       <td>${o.outboundNo || '—'}</td>
       <td>${o.shippingInfo}</td>
       <td>${o.salesperson}</td>
+      <td class="mall-ops-cell"><a class="op-link" onclick="openMallDetailModal(${o.id})">详情</a></td>
     </tr>
   `).join('');
 
@@ -1096,19 +1166,22 @@ function openDetailModal(orderId) {
 
   // Parts list
   const partsBody = document.getElementById('detailPartsBody');
-  const totalQty = order.parts.reduce((s, p) => s + p.poQty, 0);
-  const totalSub = order.parts.reduce((s, p) => s + p.subtotal, 0);
-  partsBody.innerHTML = order.parts.map(part => `
+  // Store a copy of parts for price editing
+  state.detailModalParts = order.parts.map(p => ({ ...p }));
+  const totalQty = state.detailModalParts.reduce((s, p) => s + p.poQty, 0);
+  const totalSub = state.detailModalParts.reduce((s, p) => s + (p.price * p.poQty), 0);
+  partsBody.innerHTML = state.detailModalParts.map((part, idx) => `
     <tr>
       <td>${part.code}</td>
       <td class="col-img"><div class="part-thumb">${ICONS.image}</div></td>
       <td>${part.name}</td>
       <td>${part.k3Code}</td>
       <td>${part.spec}</td>
-      <td>${fmt(part.price)}</td>
+      <td><input type="number" class="price-input" value="${part.price}" min="0" step="0.01" onchange="updateDetailPartPrice(${idx}, this.value)"></td>
       <td>${part.poQty}</td>
-      <td>${fmt(part.subtotal)}</td>
+      <td class="subtotal-cell" id="detailSubtotal-${idx}">${fmt(part.price * part.poQty)}</td>
       <td>—</td>
+      <td class="col-ops"><a class="op-replace" onclick="replacePart(${idx})">更换</a></td>
     </tr>
   `).join('');
   document.getElementById('detailTotalQty').textContent = totalQty;
@@ -1188,6 +1261,200 @@ function showToast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
   refreshIcons();
+}
+
+/* ================================================================ */
+/* =================== Detail Modal: Price & Replace ============== */
+/* ================================================================ */
+
+function updateDetailPartPrice(idx, value) {
+  const part = state.detailModalParts[idx];
+  if (!part) return;
+  let newPrice = parseFloat(value);
+  if (isNaN(newPrice) || newPrice < 0) newPrice = 0;
+  part.price = newPrice;
+  // Update the subtotal cell
+  const subtotalEl = document.getElementById('detailSubtotal-' + idx);
+  if (subtotalEl) subtotalEl.textContent = fmt(newPrice * part.poQty);
+  // Update total
+  const totalSub = state.detailModalParts.reduce((s, p) => s + (p.price * p.poQty), 0);
+  const totalEl = document.getElementById('detailSubtotal');
+  if (totalEl) totalEl.textContent = '$' + fmt(totalSub);
+}
+
+function replacePart(idx) {
+  showToast('更换配件功能演示中', 'info');
+}
+
+/* ================================================================ */
+/* =================== Approval Modal ============================= */
+/* ================================================================ */
+
+function openApprovalModal(orderId) {
+  const order = DB.orders.find(o => o.id === orderId);
+  if (!order) return;
+  state.currentApprovalOrderId = orderId;
+
+  // Summary bar
+  const summaryHtml = `
+    <div class="summary-item">
+      <span class="label">采购单号</span>
+      <span class="value">${order.poNo}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">客户名称</span>
+      <span class="value">${order.customer}</span>
+    </div>
+    <div class="summary-item">
+      <span class="label">订单状态</span>
+      <span class="value"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></span>
+    </div>
+    <div class="summary-item">
+      <span class="label">业务员</span>
+      <span class="value">${order.salesperson}</span>
+    </div>
+    <div class="summary-item full">
+      <span class="label">服务中心</span>
+      <span class="value">${order.serviceCenter}</span>
+    </div>
+  `;
+  document.getElementById('approvalSummary').innerHTML = summaryHtml;
+
+  // Parts table
+  const partsBody = document.getElementById('approvalPartsBody');
+  partsBody.innerHTML = order.parts.map(part => `
+    <tr>
+      <td>${part.code}</td>
+      <td class="col-img"><div class="part-thumb">${ICONS.image}</div></td>
+      <td>${part.name}</td>
+      <td>${part.k3Code}</td>
+      <td>${part.spec || '—'}</td>
+      <td class="amount-col">${fmt(part.price)}</td>
+      <td class="amount-col">${part.poQty}</td>
+      <td class="amount-col">${fmt(part.subtotal)}</td>
+    </tr>
+  `).join('');
+
+  // Total
+  const total = order.parts.reduce((s, p) => s + (p.subtotal || 0), 0);
+  document.getElementById('approvalTotal').textContent = '$' + fmt(total);
+
+  document.getElementById('approvalModalOverlay').classList.add('show');
+  refreshIcons();
+}
+
+function closeApprovalModal() {
+  document.getElementById('approvalModalOverlay').classList.remove('show');
+  state.currentApprovalOrderId = null;
+}
+function closeApprovalModalOnOverlay(event) {
+  if (event.target === document.getElementById('approvalModalOverlay')) closeApprovalModal();
+}
+
+function approveOrder() {
+  const orderId = state.currentApprovalOrderId;
+  if (!orderId) return;
+  const order = DB.orders.find(o => o.id === orderId);
+  if (order) {
+    order.orderStatus = '待客户确认';
+    updateTabCounts();
+    if (state.scheme === 1) {
+      renderTabs();
+      renderTable();
+    } else {
+      s2RenderTabs();
+      s2RenderTable();
+    }
+  }
+  closeApprovalModal();
+  showToast('订单审批通过，状态更新为「待客户确认」', 'success');
+}
+
+function rejectOrder() {
+  const orderId = state.currentApprovalOrderId;
+  if (!orderId) return;
+  const order = DB.orders.find(o => o.id === orderId);
+  if (order) {
+    order.orderStatus = '客户未提交';
+    updateTabCounts();
+    if (state.scheme === 1) {
+      renderTabs();
+      renderTable();
+    } else {
+      s2RenderTabs();
+      s2RenderTable();
+    }
+  }
+  closeApprovalModal();
+  showToast('订单已拒绝，状态更新为「客户未提交」', 'info');
+}
+
+/* ================================================================ */
+/* =================== Mall Order Detail Modal ==================== */
+/* ================================================================ */
+
+function openMallDetailModal(orderId) {
+  const order = DB.mallOrders.find(o => o.id === orderId);
+  if (!order) return;
+
+  // Stats cards
+  const statsHtml = `
+    <div class="stat-card"><div class="stat-value">$${fmt(order.totalAmount)}</div><div class="stat-label">订单总额</div></div>
+    <div class="stat-card"><div class="stat-value">$${fmt(order.payableAmount)}</div><div class="stat-label">应付金额</div></div>
+    <div class="stat-card"><div class="stat-value">$${fmt(order.paidAmount)}</div><div class="stat-label">实付金额</div></div>
+    <div class="stat-card"><div class="stat-value">${order.parts ? order.parts.reduce((s, p) => s + p.qty, 0) : 0}</div><div class="stat-label">配件数量</div></div>
+  `;
+  document.getElementById('mallDetailStats').innerHTML = statsHtml;
+
+  // Basic info
+  document.getElementById('mallDetailOrderType').textContent = order.orderType;
+  document.getElementById('mallDetailOrderNo').textContent = order.orderNo;
+  document.getElementById('mallDetailCustomer').textContent = order.customer;
+  document.getElementById('mallDetailReceiver').textContent = order.receiver;
+  document.getElementById('mallDetailIsWarranty').textContent = order.isWarranty;
+
+  // Status info
+  document.getElementById('mallDetailPayStatus').textContent = order.payStatus;
+  document.getElementById('mallDetailOrderStatus').textContent = order.orderStatus;
+  document.getElementById('mallDetailCustomerType').textContent = order.customerType;
+  document.getElementById('mallDetailInvoiceInfo').textContent = order.invoiceInfo;
+  document.getElementById('mallDetailOaStatus').textContent = order.oaStatus;
+
+  // Logistics & other
+  document.getElementById('mallDetailOutboundStatus').textContent = order.outboundStatus;
+  document.getElementById('mallDetailOutboundNo').textContent = order.outboundNo || '—';
+  document.getElementById('mallDetailShippingInfo').textContent = order.shippingInfo;
+  document.getElementById('mallDetailSalesperson').textContent = order.salesperson;
+
+  // Parts list
+  const partsBody = document.getElementById('mallDetailPartsBody');
+  const parts = order.parts || [];
+  const totalQty = parts.reduce((s, p) => s + p.qty, 0);
+  const totalSub = parts.reduce((s, p) => s + (p.price * p.qty), 0);
+  partsBody.innerHTML = parts.map(part => `
+    <tr>
+      <td>${part.code}</td>
+      <td class="col-img"><div class="part-thumb">${ICONS.image}</div></td>
+      <td>${part.name}</td>
+      <td>${part.k3Code}</td>
+      <td>${part.spec}</td>
+      <td class="amount-col">${fmt(part.price)}</td>
+      <td class="amount-col">${part.qty}</td>
+      <td class="amount-col">${fmt(part.price * part.qty)}</td>
+    </tr>
+  `).join('');
+  document.getElementById('mallDetailTotalQty').textContent = totalQty;
+  document.getElementById('mallDetailSubtotal').textContent = '$' + fmt(totalSub);
+
+  document.getElementById('mallDetailModalOverlay').classList.add('show');
+  refreshIcons();
+}
+
+function closeMallDetailModal() {
+  document.getElementById('mallDetailModalOverlay').classList.remove('show');
+}
+function closeMallDetailModalOnOverlay(event) {
+  if (event.target === document.getElementById('mallDetailModalOverlay')) closeMallDetailModal();
 }
 
 /* ==================== Init ==================== */
