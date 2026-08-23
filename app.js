@@ -376,9 +376,9 @@ function renderTable() {
         <td onclick="toggleExpand(${order.id})">${order.serviceCenter}</td>
         <td onclick="toggleExpand(${order.id})">${order.customer}</td>
         <td class="col-parts-detail" onclick="toggleExpand(${order.id})"><span class="expand-toggle ${expandArrow}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
-        <td onclick="toggleExpand(${order.id})">${order.qty}</td>
-        <td onclick="toggleExpand(${order.id})">${order.unitPrice ? fmt(order.unitPrice) : '—'}</td>
-        <td onclick="toggleExpand(${order.id})">${order.subtotal ? fmt(order.subtotal) : '—'}</td>
+        <td onclick="toggleExpand(${order.id})">${displayQty}</td>
+        <td onclick="toggleExpand(${order.id})">${displayUnitPrice}</td>
+        <td onclick="toggleExpand(${order.id})">${order.parts.length > 1 ? '—' : displaySubtotal}</td>
         <td onclick="toggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
         <td onclick="toggleExpand(${order.id})">${order.salesperson}</td>
         <td onclick="toggleExpand(${order.id})">${order.mallOrderNo || '—'}</td>
@@ -387,7 +387,12 @@ function renderTable() {
         <td class="ops-cell">${renderOps(order)}</td>
       </tr>`;
 
-    // Expanded parts rows — part names under 商品明细 column
+    // 未展开时：多商品无小计，单商品展示单个商品小计
+    const displaySubtotal = order.parts.length === 1 ? fmt(order.parts[0].subtotal) : (order.subtotal ? fmt(order.subtotal) : '—');
+    const displayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : (order.unitPrice ? fmt(order.unitPrice) : '—');
+    const displayQty = order.parts.length === 1 ? order.parts[0].poQty : order.qty;
+
+    // Expanded parts rows — part details aligned with table columns
     if (isExpanded) {
       order.parts.forEach((part, pi) => {
         const partSelected = state.selectedParts.has(partKey(order.id, pi));
@@ -400,13 +405,13 @@ function renderTable() {
         <td></td>
         <td></td>
         <td class="col-parts-detail part-name-cell">${part.name}</td>
+        <td>${part.poQty}</td>
+        <td>${fmt(part.price)}</td>
+        <td>${fmt(part.subtotal)}</td>
+        <td><span class="status-badge ${statusClass(part.partStatus)}"><span class="dot"></span>${part.partStatus}</span></td>
         <td></td>
         <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+        <td>${part.logisticsNo || '—'}</td>
         <td></td>
         <td class="ops-cell"></td>
       </tr>`;
@@ -632,6 +637,11 @@ function s2RenderTable() {
     const cbClass = isSelected ? 'cb checked' : 'cb';
     const expandArrow = isExpanded ? 'expanded' : '';
 
+    // 未展开时：多商品无小计，单商品展示单个商品小计
+    const s2DisplaySubtotal = order.parts.length === 1 ? fmt(order.parts[0].subtotal) : (order.subtotal ? fmt(order.subtotal) : '—');
+    const s2DisplayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : (order.unitPrice ? fmt(order.unitPrice) : '—');
+    const s2DisplayQty = order.parts.length === 1 ? order.parts[0].poQty : order.qty;
+
     html += `
       <tr class="${isSelected ? 'row-selected' : ''} clickable-row" data-order-id="${order.id}">
         <td class="checkbox-cell"><div class="${cbClass}" onclick="event.stopPropagation(); s2ToggleOrderSelect(${order.id})">${ICONS.check}</div></td>
@@ -641,9 +651,9 @@ function s2RenderTable() {
         <td onclick="s2ToggleExpand(${order.id})">${order.serviceCenter}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.customer}</td>
         <td class="col-parts-detail" onclick="s2ToggleExpand(${order.id})"><span class="expand-toggle ${expandArrow}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.qty}</td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.unitPrice ? fmt(order.unitPrice) : '—'}</td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.subtotal ? fmt(order.subtotal) : '—'}</td>
+        <td onclick="s2ToggleExpand(${order.id})">${s2DisplayQty}</td>
+        <td onclick="s2ToggleExpand(${order.id})">${s2DisplayUnitPrice}</td>
+        <td onclick="s2ToggleExpand(${order.id})">${order.parts.length > 1 ? '—' : s2DisplaySubtotal}</td>
         <td onclick="s2ToggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
         <td onclick="s2ToggleExpand(${order.id})">${order.salesperson}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.mallOrderNo || '—'}</td>
@@ -663,13 +673,13 @@ function s2RenderTable() {
           <td></td>
           <td></td>
           <td class="col-parts-detail part-name-cell">${part.name}</td>
+          <td>${part.poQty}</td>
+          <td>${fmt(part.price)}</td>
+          <td>${fmt(part.subtotal)}</td>
+          <td><span class="status-badge ${statusClass(part.partStatus)}"><span class="dot"></span>${part.partStatus}</span></td>
           <td></td>
           <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td></td>
+          <td>${part.logisticsNo || '—'}</td>
           <td></td>
           <td class="ops-cell"></td>
         </tr>`;
