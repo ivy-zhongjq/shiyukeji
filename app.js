@@ -40,7 +40,7 @@ function fmt(n) {
 
 function statusClass(status) {
   const map = {
-    '未提交': 'status-default', '客户未提交': 'status-default',
+    '未提交': 'status-default', '待客户提交': 'status-default',
     '待审批': 'status-processing', '待客户确认': 'status-warning',
     '待开单': 'status-warning', '待发货': 'status-processing', '部分发货': 'status-processing',
     '已发货': 'status-success', '待入库': 'status-processing', '部分入库': 'status-processing',
@@ -299,7 +299,7 @@ function s2SwitchPage(page) {
 
 const tabStatusMap = {
   all: null,
-  not_submitted: ['未提交', '客户未提交'],
+  not_submitted: ['未提交', '待客户提交'],
   pending_approval: '待审批',
   pending_customer: '待客户确认',
   pending: '待开单',
@@ -470,7 +470,7 @@ function emptyRow(colspan) {
 function renderOps(order) {
   const s = order.orderStatus;
   if (s === '未提交') return opsLinks(['详情', '编辑订单', '日志'], order);
-  if (s === '客户未提交') return opsLinks(['详情', '日志'], order);
+  if (s === '待客户提交') return opsLinks(['详情', '日志'], order);
   if (s === '待审批') return opsLinks(['审批', '编辑订单', '详情', '日志'], order);
   if (s === '待客户确认') return opsLinks(['详情', '日志'], order);
   if (s === '待开单') return opsLinks(['推单', '详情', '日志'], order);
@@ -573,7 +573,7 @@ function confirmSubmit(orderId) {
 /* —— Tab Counts —— */
 function updateTabCounts() {
   DB.statusTabs[0].count = DB.orders.length;
-  DB.statusTabs[1].count = DB.orders.filter(o => o.orderStatus === '未提交' || o.orderStatus === '客户未提交').length;
+  DB.statusTabs[1].count = DB.orders.filter(o => o.orderStatus === '未提交' || o.orderStatus === '待客户提交').length;
   DB.statusTabs[2].count = DB.orders.filter(o => o.orderStatus === '待审批').length;
   DB.statusTabs[3].count = DB.orders.filter(o => o.orderStatus === '待客户确认').length;
   DB.statusTabs[4].count = DB.orders.filter(o => o.orderStatus === '待开单').length;
@@ -697,7 +697,7 @@ function s2RenderTable() {
 function s2RenderOps(order) {
   const s = order.orderStatus;
   if (s === '未提交') return opsLinks(['详情', '编辑订单', '日志'], order);
-  if (s === '客户未提交') return opsLinks(['详情', '日志'], order);
+  if (s === '待客户提交') return opsLinks(['详情', '日志'], order);
   if (s === '待审批') return opsLinks(['审批', '编辑订单', '详情', '日志'], order);
   if (s === '待客户确认') return opsLinks(['详情', '日志'], order);
   if (s === '待开单') return opsLinks(['推单', '详情', '日志'], order);
@@ -1387,7 +1387,7 @@ function rejectOrder() {
   if (!orderId) return;
   const order = DB.orders.find(o => o.id === orderId);
   if (order) {
-    order.orderStatus = '客户未提交';
+    order.orderStatus = '待客户提交';
     updateTabCounts();
     if (state.scheme === 1) {
       renderTabs();
@@ -1398,7 +1398,7 @@ function rejectOrder() {
     }
   }
   closeApprovalModal();
-  showToast('订单已拒绝，状态更新为「客户未提交」', 'info');
+  showToast('订单已拒绝，状态更新为「待客户提交」', 'info');
 }
 
 /* ================================================================ */

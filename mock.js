@@ -22,10 +22,10 @@ const DB = {
       poNo: 'CG50553665', serviceCenter: '美国服务中心', customer: 'uicc',
       salesperson: 'Jennifer', mallOrderNo: '', logisticsNo: '', repairNo: 'AS20260423001',
       qty: 10, unitPrice: 1500, subtotal: 4500.00,
-      orderStatus: '客户未提交', customerStatus: '未提交',
+      orderStatus: '待客户提交', customerStatus: '未提交',
       parts: [
-        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 150,  subtotal: 1500, poNo: 'CG50555656', stock: 5,  poQty: 10, remaining: 10, partStatus: '客户未提交', logisticsNo: '' },
-        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 300, subtotal: 3000, poNo: 'CG50555657', stock: 3,  poQty: 10, remaining: 10, partStatus: '客户未提交', logisticsNo: '' },
+        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 150,  subtotal: 1500, poNo: 'CG50555656', stock: 5,  poQty: 10, remaining: 10, partStatus: '待客户提交', logisticsNo: '' },
+        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 300, subtotal: 3000, poNo: 'CG50555657', stock: 3,  poQty: 10, remaining: 10, partStatus: '待客户提交', logisticsNo: '' },
       ]
     },
     {
