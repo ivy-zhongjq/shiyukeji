@@ -304,7 +304,6 @@ const tabStatusMap = {
   pending_customer: '待客户确认',
   pending: '待开单',
   pending_ship: '待发货',
-  shipped: '已发货',
   pending_in: '待入库',
 };
 
@@ -366,10 +365,11 @@ function renderTable() {
     const clickableClass = 'clickable-row';
     const expandArrow = isExpanded ? 'expanded' : '';
 
-    // 未展开时：多商品无小计，单商品展示单个商品小计
-    const displaySubtotal = order.parts.length === 1 ? fmt(order.parts[0].subtotal) : (order.subtotal ? fmt(order.subtotal) : '—');
-    const displayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : (order.unitPrice ? fmt(order.unitPrice) : '—');
-    const displayQty = order.parts.length === 1 ? order.parts[0].poQty : order.qty;
+    // 未展开时：采购数量=明细数量之和；多商品单价为—；商品小计=明细小计之和
+    const displayQty = order.parts.reduce((s, p) => s + p.poQty, 0);
+    const displayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : '—';
+    const displaySubtotal = order.parts.reduce((s, p) => s + p.subtotal, 0);
+    const displaySubtotalFmt = fmt(displaySubtotal);
 
     // Main row
     html += `
@@ -383,7 +383,7 @@ function renderTable() {
         <td class="col-parts-detail" onclick="toggleExpand(${order.id})"><span class="expand-toggle ${expandArrow}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
         <td onclick="toggleExpand(${order.id})">${displayQty}</td>
         <td onclick="toggleExpand(${order.id})">${displayUnitPrice}</td>
-        <td onclick="toggleExpand(${order.id})">${order.parts.length > 1 ? '—' : displaySubtotal}</td>
+        <td onclick="toggleExpand(${order.id})">${displaySubtotalFmt}</td>
         <td onclick="toggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
         <td onclick="toggleExpand(${order.id})">${order.salesperson}</td>
         <td onclick="toggleExpand(${order.id})">${order.mallOrderNo || '—'}</td>
@@ -573,10 +573,12 @@ function confirmSubmit(orderId) {
 /* —— Tab Counts —— */
 function updateTabCounts() {
   DB.statusTabs[0].count = DB.orders.length;
-  DB.statusTabs[1].count = DB.orders.filter(o => o.orderStatus === '待开单').length;
-  DB.statusTabs[2].count = DB.orders.filter(o => o.orderStatus === '待发货' || o.orderStatus === '部分发货').length;
-  DB.statusTabs[3].count = DB.orders.filter(o => o.orderStatus === '已发货').length;
-  DB.statusTabs[4].count = DB.orders.filter(o => o.orderStatus === '待入库' || o.orderStatus === '部分入库').length;
+  DB.statusTabs[1].count = DB.orders.filter(o => o.orderStatus === '未提交' || o.orderStatus === '客户未提交').length;
+  DB.statusTabs[2].count = DB.orders.filter(o => o.orderStatus === '待审批').length;
+  DB.statusTabs[3].count = DB.orders.filter(o => o.orderStatus === '待客户确认').length;
+  DB.statusTabs[4].count = DB.orders.filter(o => o.orderStatus === '待开单').length;
+  DB.statusTabs[5].count = DB.orders.filter(o => o.orderStatus === '待发货' || o.orderStatus === '部分发货').length;
+  DB.statusTabs[6].count = DB.orders.filter(o => o.orderStatus === '待入库' || o.orderStatus === '部分入库').length;
 }
 
 /* ================================================================ */
@@ -637,10 +639,10 @@ function s2RenderTable() {
     const cbClass = isSelected ? 'cb checked' : 'cb';
     const expandArrow = isExpanded ? 'expanded' : '';
 
-    // 未展开时：多商品无小计，单商品展示单个商品小计
-    const s2DisplaySubtotal = order.parts.length === 1 ? fmt(order.parts[0].subtotal) : (order.subtotal ? fmt(order.subtotal) : '—');
-    const s2DisplayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : (order.unitPrice ? fmt(order.unitPrice) : '—');
-    const s2DisplayQty = order.parts.length === 1 ? order.parts[0].poQty : order.qty;
+    // 未展开时：采购数量=明细数量之和；多商品单价为—；商品小计=明细小计之和
+    const s2DisplayQty = order.parts.reduce((s, p) => s + p.poQty, 0);
+    const s2DisplayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : '—';
+    const s2DisplaySubtotal = fmt(order.parts.reduce((s, p) => s + p.subtotal, 0));
 
     html += `
       <tr class="${isSelected ? 'row-selected' : ''} clickable-row" data-order-id="${order.id}">
@@ -653,7 +655,7 @@ function s2RenderTable() {
         <td class="col-parts-detail" onclick="s2ToggleExpand(${order.id})"><span class="expand-toggle ${expandArrow}"><span class="arrow">${ICONS.chevron}</span>商品明细 (${order.parts.length})</span></td>
         <td onclick="s2ToggleExpand(${order.id})">${s2DisplayQty}</td>
         <td onclick="s2ToggleExpand(${order.id})">${s2DisplayUnitPrice}</td>
-        <td onclick="s2ToggleExpand(${order.id})">${order.parts.length > 1 ? '—' : s2DisplaySubtotal}</td>
+        <td onclick="s2ToggleExpand(${order.id})">${s2DisplaySubtotal}</td>
         <td onclick="s2ToggleExpand(${order.id})"><span class="status-badge ${statusClass(order.orderStatus)}"><span class="dot"></span>${order.orderStatus}</span></td>
         <td onclick="s2ToggleExpand(${order.id})">${order.salesperson}</td>
         <td onclick="s2ToggleExpand(${order.id})">${order.mallOrderNo || '—'}</td>

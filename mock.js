@@ -11,8 +11,7 @@ const DB = {
     { key: 'pending_approval',   label: '待审批',     count: 1  },
     { key: 'pending_customer',   label: '待客户确认', count: 1  },
     { key: 'pending',            label: '待开单',     count: 3  },
-    { key: 'pending_ship',       label: '待发货',     count: 2  },
-    { key: 'shipped',            label: '已发货',     count: 1  },
+    { key: 'pending_ship',       label: '待发货',     count: 3  },
     { key: 'pending_in',         label: '待入库',     count: 1  },
   ],
 
@@ -77,9 +76,9 @@ const DB = {
       poNo: 'CG50553657', serviceCenter: '美国服务中心', customer: 'zhang',
       salesperson: 'Lisa', mallOrderNo: 'SY202604200008', logisticsNo: 'UPS99887766', repairNo: 'AS20260418005',
       qty: 10, unitPrice: 1.50, subtotal: 15.00,
-      orderStatus: '已发货', customerStatus: '已确认',
+      orderStatus: '待发货', customerStatus: '已确认',
       parts: [
-        { code: 'T170-0601-00', name: 'CPU FAN', k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 1.50, subtotal: 15.00, poNo: 'CG50555645', stock: 12, poQty: 10, remaining: 0, partStatus: '已发货', logisticsNo: 'UPS99887766' },
+        { code: 'T170-0601-00', name: 'CPU FAN', k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 1.50, subtotal: 15.00, poNo: 'CG50555645', stock: 12, poQty: 10, remaining: 0, partStatus: '待发货', logisticsNo: 'UPS99887766' },
       ]
     },
     {
