@@ -25,8 +25,8 @@ const DB = {
       qty: 10, unitPrice: 1500, subtotal: 4500.00,
       orderStatus: '客户未提交', customerStatus: '未提交',
       parts: [
-        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 150,  subtotal: 1500, poNo: 'CG50555656', stock: 5,  poQty: 10, remaining: 10, partStatus: '待开单', logisticsNo: '' },
-        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 300, subtotal: 3000, poNo: 'CG50555657', stock: 3,  poQty: 10, remaining: 10, partStatus: '待开单', logisticsNo: '' },
+        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 150,  subtotal: 1500, poNo: 'CG50555656', stock: 5,  poQty: 10, remaining: 10, partStatus: '客户未提交', logisticsNo: '' },
+        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 300, subtotal: 3000, poNo: 'CG50555657', stock: 3,  poQty: 10, remaining: 10, partStatus: '客户未提交', logisticsNo: '' },
       ]
     },
     {
@@ -47,7 +47,7 @@ const DB = {
       qty: 5, unitPrice: 1.50, subtotal: 7.50,
       orderStatus: '待审批', customerStatus: '已确认',
       parts: [
-        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 1.50, subtotal: 7.50, poNo: 'CG50555645', stock: 12, poQty: 5,  remaining: 5, partStatus: '待开单', logisticsNo: '' },
+        { code: 'T170-0601-00', name: 'CPU FAN',   k3Code: 'K3-A002', spec: '202.1/23/14.12/1', price: 1.50, subtotal: 7.50, poNo: 'CG50555645', stock: 12, poQty: 5,  remaining: 5, partStatus: '待审批', logisticsNo: '' },
       ]
     },
     {
@@ -129,8 +129,8 @@ const DB = {
       qty: 15, unitPrice: 12.00, subtotal: 180.00,
       orderStatus: '待客户确认', customerStatus: '待确认',
       parts: [
-        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 12.00, subtotal: 120.00, poNo: 'CG50555660', stock: 5, poQty: 10, remaining: 10, partStatus: '待开单', logisticsNo: '' },
-        { code: 'T170-0602-00', name: 'Power Supply', k3Code: 'K3-A003', spec: '202.1/23/14.1/22', price: 12.00, subtotal: 60.00, poNo: 'CG50555661', stock: 8, poQty: 5, remaining: 5, partStatus: '待开单', logisticsNo: '' },
+        { code: 'W121-0902-00', name: 'Computer',  k3Code: 'K3-A001', spec: '205.4/24/24.0/05', price: 12.00, subtotal: 120.00, poNo: 'CG50555660', stock: 5, poQty: 10, remaining: 10, partStatus: '待客户确认', logisticsNo: '' },
+        { code: 'T170-0602-00', name: 'Power Supply', k3Code: 'K3-A003', spec: '202.1/23/14.1/22', price: 12.00, subtotal: 60.00, poNo: 'CG50555661', stock: 8, poQty: 5, remaining: 5, partStatus: '待客户确认', logisticsNo: '' },
       ]
     },
     {
