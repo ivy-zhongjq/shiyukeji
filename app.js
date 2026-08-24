@@ -366,6 +366,11 @@ function renderTable() {
     const clickableClass = 'clickable-row';
     const expandArrow = isExpanded ? 'expanded' : '';
 
+    // 未展开时：多商品无小计，单商品展示单个商品小计
+    const displaySubtotal = order.parts.length === 1 ? fmt(order.parts[0].subtotal) : (order.subtotal ? fmt(order.subtotal) : '—');
+    const displayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : (order.unitPrice ? fmt(order.unitPrice) : '—');
+    const displayQty = order.parts.length === 1 ? order.parts[0].poQty : order.qty;
+
     // Main row
     html += `
       <tr class="${rowClass} ${clickableClass}" data-order-id="${order.id}">
@@ -386,11 +391,6 @@ function renderTable() {
         <td onclick="toggleExpand(${order.id})">${order.repairNo || '—'}</td>
         <td class="ops-cell">${renderOps(order)}</td>
       </tr>`;
-
-    // 未展开时：多商品无小计，单商品展示单个商品小计
-    const displaySubtotal = order.parts.length === 1 ? fmt(order.parts[0].subtotal) : (order.subtotal ? fmt(order.subtotal) : '—');
-    const displayUnitPrice = order.parts.length === 1 ? fmt(order.parts[0].price) : (order.unitPrice ? fmt(order.unitPrice) : '—');
-    const displayQty = order.parts.length === 1 ? order.parts[0].poQty : order.qty;
 
     // Expanded parts rows — part details aligned with table columns
     if (isExpanded) {
