@@ -1477,6 +1477,7 @@ function init() {
   updateTabCounts();
   renderTabs();
   renderTable();
+  s1SwitchPage('orderList');
   s2RenderTabs();
   s2RenderTable();
   s2pRenderTable();
