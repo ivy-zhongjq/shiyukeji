@@ -4686,17 +4686,17 @@
 
     <!-- Scheme Banner -->
     <div class="scheme-banner">
-      <div class="scheme-toggle">
-        <button class="scheme-btn active" data-scheme="1" onclick="switchScheme(1)">
+      <div class="scheme-toggle" style="display:none;">
+        <button class="scheme-btn" data-scheme="1" onclick="switchScheme(1)">
           方案一
         </button>
-        <button class="scheme-btn" data-scheme="2" onclick="switchScheme(2)">
+        <button class="scheme-btn active" data-scheme="2" onclick="switchScheme(2)">
           方案二
         </button>
       </div>
       <div class="scheme-desc" id="schemeDesc">
-      <span class="scheme-tag">方案一</span>
-      直接在原销售订单列表进行拆单 — 列表支持展开订单配件明细，勾选配件生成世宇商城订单
+      <span class="scheme-tag">方案二</span>
+      原订单不动，新增「待开单」页面 — 将单据直接拆分，按客户分组展示配件明细，勾选配件生成世宇商城订单
     </div>
     </div>
 
@@ -4704,7 +4704,7 @@
     <div class="content">
 
       <!-- ===== Scheme 1 Content ===== -->
-      <div class="scheme1-content" id="scheme1Content" style="display: block;">
+      <div class="scheme1-content" id="scheme1Content" style="display: none;">
 
         <!-- S1 Page: 订单列表 -->
         <div class="s1-page active" id="s1PageOrderList">
@@ -5468,7 +5468,7 @@
       </div>
 
       <!-- ===== Scheme 2 Content ===== -->
-      <div class="scheme2-content" id="scheme2Content">
+      <div class="scheme2-content show" id="scheme2Content">
 
         <!-- S2 Page: 订单列表 (original orders, no splitting) -->
         <div class="s2-page" id="s2PageOrderList">

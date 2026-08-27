@@ -5,7 +5,7 @@
 
 /* ==================== State ==================== */
 const state = {
-  scheme: 1,
+  scheme: 2,
   // Scheme 1 state
   s1CurrentPage: 'orderList',    // 'orderList' | 'workflow' | 'mallOrders'
   currentTab: 'all',
@@ -1474,12 +1474,13 @@ function init() {
   // Expand all customer groups by default
   DB.s2Customers.forEach((_, ci) => state.s2pExpandedCustomers.add('cust-' + ci));
 
+  // Default to Scheme 2
+  switchScheme(2);
   renderSidebar();
   renderBreadcrumb();
   updateTabCounts();
   renderTabs();
   renderTable();
-  s1SwitchPage('orderList');
   s2RenderTabs();
   s2RenderTable();
   s2pRenderTable();
